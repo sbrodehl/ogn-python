@@ -61,22 +61,25 @@ def read_ddb(csv_file=None):
 
 
 def read_flarmnet(fln_file=None):
+    import flarmnet
     if fln_file is None:
+        from io import StringIO
         sender_info_origin = SenderInfoOrigin.FLARMNET
         r = requests.get(FLARMNET_URL)
-        rows = [bytes.fromhex(line).decode("latin1") for line in r.text.split("\n") if len(line) == 173]
+        buffer = StringIO(r.text)
+        reader = flarmnet.Reader(buffer)
     else:
         sender_info_origin = SenderInfoOrigin.USER_DEFINED  # TODO: USER_DEFINED_FLARM ?
-        with open(fln_file, "r") as file:
-            rows = [bytes.fromhex(line.strip()).decode("latin1") for line in file.readlines() if len(line) == 173]
+        with open(fln_file, "rb") as file:
+            reader = flarmnet.Reader(file)
 
     sender_info_dicts = []
-    for row in rows:
+    for record in reader.read():
         sender_info_dicts.append({
-            'address': row[0:6].strip(),
-            'aircraft': row[48:69].strip(),
-            'registration': row[69:76].strip(),
-            'competition': row[76:79].strip(),
+            'address': record.id,
+            'aircraft': record.plane_type,
+            'registration': record.registration,
+            'competition': record.competition_id if record.competition_id else None,
             'address_origin': sender_info_origin
         })
 
