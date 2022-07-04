@@ -10,8 +10,8 @@ from flydenity import parser as flydenity_parser
 from app import db
 from app.model import AircraftType, Country, Sender, SenderInfo, SenderInfoOrigin, Receiver
 
-DDB_URL = "http://ddb.glidernet.org/download/?t=1"
-FLARMNET_URL = "http://www.flarmnet.org/files/data.fln"
+DDB_URL = "https://ddb.glidernet.org/download/?j=1&t=1"
+FLARMNET_URL = "https://www.flarmnet.org/static/files/wfn/data.fln"
 
 
 def upsert(model, rows, update_cols):
