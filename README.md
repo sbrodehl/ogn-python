@@ -81,10 +81,10 @@ It requires [redis](http://redis.io), [PostgreSQL](http://www.postgresql.org/), 
 	flask database import_airports tests/SeeYou.cup 
 	```
 
-12. Import DDB (needed for registration signs in the logbook).
-
+12. Import united-flarmnet (needed for registration signs in the logbook).
+    Use [united-flarmnet](https://github.com/Turbo87/united-flarmnet) to create `united.fln`, then import all registrations.
 	```
-	flask database import_ddb
+	flask database import_flarmnet united.fln
 	```
 
 13. Optional: Use supervisord
