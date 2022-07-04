@@ -61,17 +61,17 @@ def read_ddb(csv_file=None):
 
 
 def read_flarmnet(fln_file=None):
+    from io import StringIO
     import flarmnet
     if fln_file is None:
-        from io import StringIO
         sender_info_origin = SenderInfoOrigin.FLARMNET
         r = requests.get(FLARMNET_URL)
         buffer = StringIO(r.text)
         reader = flarmnet.Reader(buffer)
     else:
         sender_info_origin = SenderInfoOrigin.USER_DEFINED  # TODO: USER_DEFINED_FLARM ?
-        with open(fln_file, "rb") as file:
-            reader = flarmnet.Reader(file)
+        with open(fln_file, "r") as fh:
+            reader = flarmnet.Reader(StringIO(fh.read()))
 
     sender_info_dicts = []
     for record in reader.read():
@@ -120,3 +120,7 @@ def merge_sender_infos(sender_info_dicts):
     db.session.commit()
 
     return len(sender_info_dicts)
+
+
+if __name__ == '__main__':
+    read_flarmnet("/home/sbrodehl/Developer/united-flarmnet/united.fln")
