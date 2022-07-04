@@ -28,7 +28,7 @@ def aprs_string_to_message(aprs_string):
 
         message["location"] = "SRID=4326;POINT({} {})".format(longitude, latitude)
 
-        location_mgrs = mgrs.toMGRS(latitude, longitude).decode("utf-8")
+        location_mgrs = mgrs.toMGRS(latitude, longitude)
         message["location_mgrs"] = location_mgrs
         message["location_mgrs_short"] = location_mgrs[0:5] + location_mgrs[5:7] + location_mgrs[10:12]
 
