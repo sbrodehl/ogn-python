@@ -97,7 +97,7 @@ def import_flarmnet(path=None):
     """Import registered devices from a local file."""
 
     print("Import registered devices from '{}'...".format("internet" if path is None else path))
-    sender_info_dicts = read_flarmnet(path=path)
+    sender_info_dicts = read_flarmnet(fln_file=path)
     counter = merge_sender_infos(sender_info_dicts)
     print("Imported %i devices." % counter)
 
