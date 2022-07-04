@@ -33,19 +33,27 @@ def read_ddb(csv_file=None):
     """Get SenderInfos. You can provide a local file path for user defined SenderInfos. Otherwise the SenderInfos will be fetched from official DDB."""
 
     if csv_file is None:
+        import json
         sender_info_origin = SenderInfoOrigin.OGN_DDB
         r = requests.get(DDB_URL)
-        rows = "\n".join(i for i in r.text.splitlines() if i[0] != "#")
+        data = json.loads(r.text)["devices"]
+        sender_info_dicts = [{
+            'address_type': r['device_type'],
+            'address': r['device_id'],
+            'aircraft': r['aircraft_model'],
+            'registration': r['registration'],
+            'competition': r['cn'],
+            'tracked': r['tracked'] == "Y",
+            'identified': r['identified'] == "Y",
+            'aircraft_type': AircraftType(int(r['aircraft_type'])),
+            'address_origin': sender_info_origin
+        } for r in data]
     else:
         sender_info_origin = SenderInfoOrigin.USER_DEFINED
         r = open(csv_file, "r")
         rows = "".join(i for i in r.readlines() if i[0] != "#")
-
-    data = csv.reader(StringIO(rows), quotechar="'", quoting=csv.QUOTE_ALL)
-
-    sender_info_dicts = []
-    for row in data:
-        sender_info_dicts.append({
+        data = csv.reader(StringIO(rows), quotechar="'", quoting=csv.QUOTE_ALL)
+        sender_info_dicts = [{
             'address_type': row[0],
             'address': row[1],
             'aircraft': row[2],
@@ -55,7 +63,7 @@ def read_ddb(csv_file=None):
             'identified': row[6] == "Y",
             'aircraft_type': AircraftType(int(row[7])),
             'address_origin': sender_info_origin
-        })
+        } for row in data]
 
     return sender_info_dicts
 
@@ -119,7 +127,3 @@ def merge_sender_infos(sender_info_dicts):
     db.session.commit()
 
     return len(sender_info_dicts)
-
-
-if __name__ == '__main__':
-    read_flarmnet("/home/sbrodehl/Developer/united-flarmnet/united.fln")
