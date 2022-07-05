@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-wget -i tiles.txt -P downloads -c --quiet --show-progress
+wget -i west_europe.txt -P downloads -c --quiet --show-progress
