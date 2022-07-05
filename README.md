@@ -65,29 +65,28 @@ It requires [redis](http://redis.io), [PostgreSQL](http://www.postgresql.org/), 
     ```
     
 9. Get world elevation data (needed for AGL calculation)
-	Sources: There are many sources for DEM data. It is important that the spatial reference system (SRID) is the same as the database which is 4326.
-	The [GMTED2010 Viewer](https://topotools.cr.usgs.gov/gmted_viewer/viewer.htm) provides data for the world with SRID 4326. Just download the data you need.
-    
-    
-10. Import the GeoTIFF into the elevation table:
-    
+    Sources: There are many sources for DEM data. It is important that the spatial reference system (SRID) is the same as the database which is 4326.
+
+    Use the scripts in [srtm/](srtm) to download, convert, and import all needed DEM data.
     ```
-    raster2pgsql *.tif -s 4326 -d -M -C -I -F -t 25x25 public.elevation | psql -d ogn
+    sh download.sh
+    sh extract.sh
+    sh import.sh
     ```
 
-11. Import Airports (needed for takeoff and landing calculation). A cup file is provided under tests:
+10. Import Airports (needed for takeoff and landing calculation). A cup file is provided under tests:
 	
 	```
 	flask database import_airports tests/SeeYou.cup 
 	```
 
-12. Import united-flarmnet (needed for registration signs in the logbook).
+11. Import united-flarmnet (needed for registration signs in the logbook).
     Use [united-flarmnet](https://github.com/Turbo87/united-flarmnet) to create `united.fln`, then import all registrations.
 	```
 	flask database import_flarmnet united.fln
 	```
 
-13. Optional: Use supervisord
+12. Optional: Use supervisord
 	You can use [Supervisor](http://supervisord.org/) to control the complete system. In the directory deployment/supervisor
 	we have some configuration files to feed the database (ogn-feed), run the celery worker (celeryd), the celery beat
 	(celerybeatd), the celery monitor (flower), and the python wsgi server (gunicorn). All files assume that
