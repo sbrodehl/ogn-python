@@ -31,6 +31,8 @@ def to_html_flag(obj):
             return f"""<img src="{url_for('static', filename='img/Transparent.gif')}" class="flag flag-{obj.country.iso2.lower()}" alt="{obj.country.iso2}"/> """
         else:
             return ""
+    else:
+        raise NotImplementedError(f"cant apply filter 'to_html_flag' to object {type(obj)}")
 
 
 @bp.app_template_filter()
