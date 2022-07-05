@@ -1,7 +1,7 @@
 import math
 
 from app.main import bp
-from app.model import Airport, Country, Sender, Receiver
+from app.model import Airport, Country, Sender, Receiver, SenderInfo
 
 from flask import url_for
 
@@ -21,16 +21,15 @@ def to_html_flag(obj):
         return f"""<img src="{url_for('static', filename='img/Transparent.gif')}" class="flag flag-{obj.iso2.lower()}" alt="{obj.iso2}"/> """
 
     elif isinstance(obj, Sender):
-        if obj is not None and len(obj.infos) > 0 and obj.infos[0].country is not None:
+        if len(obj.infos) > 0 and obj.infos[0].country is not None:
             return f"""<img src="{url_for('static', filename='img/Transparent.gif')}" class="flag flag-{obj.infos[0].country.iso2.lower()}" alt="{obj.infos[0].country.iso2}"/> """
-        else:
-            return ""
+        return ""
 
-    elif isinstance(obj, Receiver):
+    elif isinstance(obj, Receiver) or isinstance(obj, SenderInfo):
         if obj.country:
             return f"""<img src="{url_for('static', filename='img/Transparent.gif')}" class="flag flag-{obj.country.iso2.lower()}" alt="{obj.country.iso2}"/> """
-        else:
-            return ""
+        return ""
+
     else:
         raise NotImplementedError(f"cant apply filter 'to_html_flag' to object {type(obj)}")
 
