@@ -56,7 +56,7 @@ def to_html_link(obj):
         return "-"
 
     else:
-        raise NotImplementedError("cant apply filter 'to_html_link' to object {type(obj)}")
+        raise NotImplementedError(f"cant apply filter 'to_html_link' to object {type(obj)}")
 
 
 @bp.app_template_filter()
