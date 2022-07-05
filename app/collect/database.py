@@ -122,7 +122,8 @@ def merge_sender_infos(sender_info_dicts):
     # Update sender_infos FK -> senders
     upd = db.update(SenderInfo) \
         .where(SenderInfo.address == Sender.address) \
-        .values(sender_id=Sender.id)
+        .values(sender_id=Sender.id) \
+        .execution_options(synchronize_session="fetch")
     result = db.session.execute(upd)
     db.session.commit()
 
