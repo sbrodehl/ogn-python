@@ -1,9 +1,9 @@
+import math
+
 from app.main import bp
 from app.model import Airport, Country, Sender, Receiver
 
 from flask import url_for
-import datetime
-import math
 
 
 @bp.app_template_filter()
