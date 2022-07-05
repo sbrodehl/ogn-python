@@ -66,17 +66,17 @@ def to_ordinal(rad):
     deg = math.degrees(rad)
     if deg >= 337.5 or deg < 22.5:
         return "N"
-    elif deg >= 22.5 and deg < 67.5:
+    elif 22.5 <= deg < 67.5:
         return "NW"
-    elif deg >= 67.5 and deg < 112.5:
+    elif 67.5 <= deg < 112.5:
         return "W"
-    elif deg >= 112.5 and deg < 157.5:
+    elif 112.5 <= deg < 157.5:
         return "SW"
-    elif deg >= 157.5 and deg < 202.5:
+    elif 157.5 <= deg < 202.5:
         return "S"
-    elif deg >= 202.5 and deg < 247.5:
+    elif 202.5 <= deg < 247.5:
         return "SE"
-    elif deg >= 247.5 and deg < 292.5:
+    elif 247.5 <= deg < 292.5:
         return "E"
-    elif deg >= 292.5 and deg < 337.5:
+    elif 292.5 <= deg < 337.5:
         return "NE"
