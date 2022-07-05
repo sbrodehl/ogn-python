@@ -110,7 +110,7 @@ def merge_sender_infos(sender_info_dicts):
     countries = {country.iso2: country for country in db.session.query(Country)}
 
     parser = flydenity_parser.Parser()
-    for sender_info in db.session.query(SenderInfo).filter(SenderInfo.country_id == db.null()):
+    for sender_info in db.session.query(SenderInfo).filter(SenderInfo.country_id == db.null(), SenderInfo.registration != db.null()):
         dataset = parser.parse(sender_info.registration, strict=True)
         if dataset is None:
             continue
