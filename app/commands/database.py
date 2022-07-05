@@ -50,6 +50,8 @@ def init():
 
     # Create PostGIS and PostGIS extensions
     db.session.execute("CREATE EXTENSION IF NOT EXISTS postgis;")
+    # - enable raster support (for 3+)
+    db.session.execute("CREATE EXTENSION IF NOT EXISTS postgis_raster;")
     db.session.execute("CREATE EXTENSION IF NOT EXISTS btree_gist;")
     db.session.execute("CREATE EXTENSION IF NOT EXISTS timescaledb;")
     db.session.commit()
