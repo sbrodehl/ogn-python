@@ -40,3 +40,4 @@ env/
 
 # Celery beat
 celerybeat-schedule
+celerybeat.pid
