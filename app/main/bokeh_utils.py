@@ -61,7 +61,7 @@ def get_bokeh_frequency_scan(frequency_scan_file):
     fig = figure(title=f"Frequency spectrum @ {frequency_scan_file.receiver.name}", sizing_mode='stretch_both', tools=[PanTool(), WheelZoomTool(), ResetTool()])
     r1 = fig.rect(x='x', y='y', width='width', height='height', color="lightgrey", source=frequency_source, legend="Common Frequencies")
     r2 = fig.line(xval, yval, legend=f"Measurement (gain={frequency_scan_file.gain})")
-    r3 = fig.line(x=[868.3, 868.3], y=[-25, 25], color="red", legend="Flarm")
+    fig.line(x=[868.3, 868.3], y=[-25, 25], color="red", legend="Flarm")
 
     fig.add_tools(HoverTool(renderers=[r1], tooltips={"info": "@desc @low-@high MHz"}))
     fig.add_tools(HoverTool(renderers=[r2], tooltips={"f [MHz]": "$x", "P [dB]": "$y"}))
