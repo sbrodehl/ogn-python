@@ -17,11 +17,15 @@ def create_range_figure2(sender_id):
 
 
 def create_range_figure(sender_id):
-    sds = db.session.query(DirectionStatistic) \
-        .filter(DirectionStatistic.sender_id == sender_id) \
-        .order_by(DirectionStatistic.directions_count.desc()) \
-        .limit(1) \
-        .one()
+    sds = db.session.query(
+        DirectionStatistic
+    ).filter(
+        DirectionStatistic.sender_id == sender_id
+    ).order_by(
+        DirectionStatistic.directions_count.desc()
+    ).limit(
+        1
+    ).one()
 
     fig = Figure()
 
@@ -35,7 +39,7 @@ def create_range_figure(sender_id):
 
     ax = fig.add_subplot(111, projection='polar')
     ax.bar(theta, radii, width=width, bottom=0.0, color=colors, edgecolor='b', alpha=0.5)
-    #ax.set_rticks([0, 25, 50, 75, 100, 125, 150])
+    # ax.set_rticks([0, 25, 50, 75, 100, 125, 150])
     ax.set_theta_zero_location("N")
     ax.set_theta_direction(-1)
 
