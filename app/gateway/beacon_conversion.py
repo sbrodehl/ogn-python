@@ -6,8 +6,8 @@ from ogn.parser import parse
 
 from app.model import AircraftType
 
-#import rasterio as rs
-#elevation_dataset = rs.open('/Volumes/LaCieBlack/Wtf4.tiff')
+# import rasterio as rs
+# elevation_dataset = rs.open('/Volumes/LaCieBlack/Wtf4.tiff')
 
 mgrs = MGRS()
 
@@ -32,7 +32,7 @@ def aprs_string_to_message(aprs_string):
         message["location_mgrs"] = location_mgrs
         message["location_mgrs_short"] = location_mgrs[0:5] + location_mgrs[5:7] + location_mgrs[10:12]
 
-        #if 'altitude' in message and longitude >= 0.0 and longitude <= 20.0 and latitude >= 40.0 and latitude <= 60.0:
+        # if 'altitude' in message and longitude >= 0.0 and longitude <= 20.0 and latitude >= 40.0 and latitude <= 60.0:
         #    elevation = [val[0] for val in elevation_dataset.sample(((longitude, latitude),))][0]
         #    message['agl'] = message['altitude'] - elevation
 
