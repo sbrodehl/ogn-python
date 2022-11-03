@@ -46,12 +46,12 @@ class Logbook(db.Model):
     def reference_timestamp(cls):
         return db.case(whens={True: cls.takeoff_timestamp, False: cls.landing_timestamp}, value=(cls.takeoff_timestamp != db.null()))
 
-    #__table_args__ = (db.Index('idx_logbook_reference_timestamp', db.case(whens={True: takeoff_timestamp, False: landing_timestamp}, value=(takeoff_timestamp != db.null()))),)
+    # __table_args__ = (db.Index('idx_logbook_reference_timestamp', db.case(whens={True: takeoff_timestamp, False: landing_timestamp}, value=(takeoff_timestamp != db.null()))),)
     # FIXME: does not work...
 
 # FIXME: this does not throw an error as the __table_args__ above, but there is no index created
-#_wrapped_case = f"({db.case(whens={True: Logbook.takeoff_timestamp, False: Logbook.landing_timestamp}, value=Logbook.takeoff_timestamp != db.null())})"
-#Index("idx_logbook_reference_timestamp", _wrapped_case)
+# _wrapped_case = f"({db.case(whens={True: Logbook.takeoff_timestamp, False: Logbook.landing_timestamp}, value=Logbook.takeoff_timestamp != db.null())})"
+# Index("idx_logbook_reference_timestamp", _wrapped_case)
 
 # TODO:
 # so execute manually: CREATE INDEX IF NOT EXISTS idx_logbook_reference_timestamp ON logbooks ((CASE takeoff_timestamp IS NULL WHEN true THEN takeoff_timestamp WHEN false THEN landing_timestamp END));
