@@ -1,11 +1,9 @@
-import os
-from datetime import datetime, timezone
+from datetime import datetime
 import time
 
 from flask import current_app
 from flask.cli import AppGroup
 import click
-from tqdm import tqdm
 
 from ogn.client import AprsClient
 
