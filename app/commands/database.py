@@ -23,7 +23,12 @@ def get_database_days(start, end):
     """Returns the first and the last day in aircraft_beacons table."""
 
     if start is None and end is None:
-        days_from_db = db.session.query(func.min(SenderPosition.timestamp).label("first_day"), func.max(SenderPosition.timestamp).label("last_day")).one()
+        days_from_db = (
+            db.session.query(
+                func.min(SenderPosition.timestamp).label("first_day"),
+                func.max(SenderPosition.timestamp).label("last_day"))
+            .one()
+        )
         start = days_from_db[0].date()
         end = days_from_db[1].date()
     else:
@@ -44,9 +49,6 @@ def info():
 @user_cli.command("init")
 def init():
     """Initialize the database (with PostGIS and TimescaleDB extensions)."""
-
-    from alembic.config import Config
-    from alembic import command
 
     # Create PostGIS and PostGIS extensions
     db.session.execute("CREATE EXTENSION IF NOT EXISTS postgis;")
