@@ -140,7 +140,7 @@ def igc(address, date):
 
     try:
         sender = db.session.query(Sender).filter(Sender.address == address).one()
-    except NoResultFound as e:
+    except NoResultFound:
         print(f"No data for '{address}' in the DB")
         return
 
@@ -179,4 +179,11 @@ def igc(address, date):
         )
 
         for point in points:
-            writer.write_fix(point.timestamp.time(), latitude=point.location.latitude, longitude=point.location.longitude, valid=True, pressure_alt=point.altitude, gps_alt=point.altitude)
+            writer.write_fix(
+                point.timestamp.time(),
+                latitude=point.location.latitude,
+                longitude=point.location.longitude,
+                valid=True,
+                pressure_alt=point.altitude,
+                gps_alt=point.altitude
+            )
