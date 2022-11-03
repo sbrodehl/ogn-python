@@ -194,7 +194,11 @@ def update_logbook(offset_days=None):
         )
         .filter(sq.c.is_takeoff == db.true())
         .filter(db.or_(sq.c.is_takeoff_next == db.true(), sq.c.is_takeoff_next == db.null()))
-        .filter(~Logbook.query.filter(db.and_(Logbook.sender_id == sq.c.sender_id, Logbook.takeoff_timestamp == sq.c.timestamp, Logbook.takeoff_airport_id == sq.c.airport_id)).exists())
+        .filter(~Logbook.query.filter(db.and_(
+            Logbook.sender_id == sq.c.sender_id,
+            Logbook.takeoff_timestamp == sq.c.timestamp,
+            Logbook.takeoff_airport_id == sq.c.airport_id)
+        ).exists())
     )
     ins = insert(Logbook).from_select(
         (
@@ -219,7 +223,11 @@ def update_logbook(offset_days=None):
         )
         .filter(db.or_(sq.c.is_takeoff_prev == db.false(), sq.c.is_takeoff_prev == db.null()))
         .filter(sq.c.is_takeoff == db.false())
-        .filter(~Logbook.query.filter(db.and_(Logbook.sender_id == sq.c.sender_id, Logbook.landing_timestamp == sq.c.timestamp, Logbook.landing_airport_id == sq.c.airport_id)).exists())
+        .filter(~Logbook.query.filter(db.and_(
+            Logbook.sender_id == sq.c.sender_id,
+            Logbook.landing_timestamp == sq.c.timestamp,
+            Logbook.landing_airport_id == sq.c.airport_id)
+        ).exists())
     )
     ins = insert(Logbook).from_select(
         (
@@ -253,8 +261,16 @@ def update_logbook(offset_days=None):
     # insert (new) flights
     new_flights_query = (
         db.session.query(complete_flight_query)
-        .filter(~Logbook.query.filter(db.and_(Logbook.sender_id == complete_flight_query.c.sender_id, Logbook.landing_timestamp == complete_flight_query.c.landing_timestamp, Logbook.landing_airport_id == complete_flight_query.c.landing_airport_id)).exists())
-        .filter(~Logbook.query.filter(db.and_(Logbook.sender_id == complete_flight_query.c.sender_id, Logbook.takeoff_timestamp == complete_flight_query.c.takeoff_timestamp, Logbook.takeoff_airport_id == complete_flight_query.c.takeoff_airport_id)).exists())
+        .filter(~Logbook.query.filter(db.and_(
+            Logbook.sender_id == complete_flight_query.c.sender_id,
+            Logbook.landing_timestamp == complete_flight_query.c.landing_timestamp,
+            Logbook.landing_airport_id == complete_flight_query.c.landing_airport_id)
+        ).exists())
+        .filter(~Logbook.query.filter(db.and_(
+            Logbook.sender_id == complete_flight_query.c.sender_id,
+            Logbook.takeoff_timestamp == complete_flight_query.c.takeoff_timestamp,
+            Logbook.takeoff_airport_id == complete_flight_query.c.takeoff_airport_id)
+        ).exists())
     )
     ins = insert(Logbook).from_select(
         (
@@ -273,7 +289,8 @@ def update_logbook(offset_days=None):
     db.session.commit()
 
     # update existing landing with takeoff from complete flight
-    upd = db.update(Logbook) \
+    upd = (
+        db.update(Logbook)
         .where(db.and_(
             Logbook.sender_id == complete_flight_query.c.sender_id,
             Logbook.takeoff_timestamp == db.null(),
@@ -281,16 +298,18 @@ def update_logbook(offset_days=None):
             Logbook.landing_timestamp != db.null(),
             Logbook.landing_timestamp == complete_flight_query.c.landing_timestamp,
             Logbook.landing_airport_id == complete_flight_query.c.landing_airport_id
-        )) \
+        ))
         .values(takeoff_timestamp=complete_flight_query.c.takeoff_timestamp,
                 takeoff_track=complete_flight_query.c.takeoff_track,
                 takeoff_airport_id=complete_flight_query.c.takeoff_airport_id)
+    )
     result = db.session.execute(upd)
     current_app.logger.debug(f"Updated {result.rowcount} takeoffs to complete flights")
     db.session.commit()
 
     # update existing takeoff with landing from complete flight
-    upd = db.update(Logbook) \
+    upd = (
+        db.update(Logbook)
         .where(db.and_(
             Logbook.sender_id == complete_flight_query.c.sender_id,
             Logbook.takeoff_timestamp != db.null(),
@@ -298,10 +317,11 @@ def update_logbook(offset_days=None):
             Logbook.takeoff_airport_id == complete_flight_query.c.takeoff_airport_id,
             Logbook.landing_timestamp == db.null(),
             Logbook.landing_airport_id == db.null()
-        )) \
+        ))
         .values(landing_timestamp=complete_flight_query.c.landing_timestamp,
                 landing_track=complete_flight_query.c.landing_track,
                 landing_airport_id=complete_flight_query.c.landing_airport_id)
+    )
     result = db.session.execute(upd)
     current_app.logger.debug(f"Updated {result.rowcount} landings to complete flights")
     db.session.commit()
@@ -351,7 +371,11 @@ def update_max_altitudes_orm():
 
     logbook_entries = (
         db.session.query(Logbook.id, Sender.name)
-        .filter(db.and_(Logbook.takeoff_timestamp != db.null(), Logbook.landing_timestamp != db.null(), Logbook.max_altitude == db.null()))
+        .filter(db.and_(
+            Logbook.takeoff_timestamp != db.null(),
+            Logbook.landing_timestamp != db.null(),
+            Logbook.max_altitude == db.null())
+        )
         .filter(Logbook.sender_id == Sender.id)
         .limit(1)
         .subquery()
@@ -359,12 +383,19 @@ def update_max_altitudes_orm():
 
     max_altitudes = (
         db.session.query(logbook_entries.c.id, db.func.max(SenderPosition.altitude).label("max_altitude"))
-        .filter(db.and_(db.between_(SenderPosition.timestamp >= Logbook.takeoff_timestamp, SenderPosition.timestamp <= Logbook.landing_timestamp), SenderPosition.name == logbook_entries.c.name))
+        .filter(db.and_(db.between_(
+            SenderPosition.timestamp >= Logbook.takeoff_timestamp,
+            SenderPosition.timestamp <= Logbook.landing_timestamp
+        ), SenderPosition.name == logbook_entries.c.name))
         .group_by(Logbook.id)
         .subquery()
     )
 
-    update_logbooks = db.session.query(Logbook).filter(Logbook.id == max_altitudes.c.id).update({Logbook.max_altitude: max_altitudes.c.max_altitude}, synchronize_session="fetch")
+    update_logbooks = (
+        db.session.query(Logbook)
+        .filter(Logbook.id == max_altitudes.c.id)
+        .update({Logbook.max_altitude: max_altitudes.c.max_altitude}, synchronize_session="fetch")
+    )
 
     db.session.commit()
 
