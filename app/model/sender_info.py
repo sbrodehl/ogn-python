@@ -2,8 +2,6 @@ from app import db
 from .sender_info_origin import SenderInfoOrigin
 from .aircraft_type import AircraftType
 
-#from sqlalchemy.dialects.postgresql import ENUM
-
 
 class SenderInfo(db.Model):
     __tablename__ = "sender_infos"
