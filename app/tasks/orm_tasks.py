@@ -7,7 +7,7 @@ from app.collect.database import read_ddb, merge_sender_infos
 
 from app.collect.gateway import transfer_from_redis_to_database
 
-from app import db, celery
+from app import celery
 
 
 @celery.task(name="transfer_to_database")
