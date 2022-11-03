@@ -17,7 +17,6 @@ from app.main.bokeh_utils import get_bokeh_frequency_scan
 @cache.cached()
 def get_countries_in_receivers():
     query = db.session.query(Country.iso2).filter(Country.gid == Receiver.country_id).order_by(Country.iso2).distinct(Country.iso2)
-
     return [{"iso2": country[0]} for country in query.all()]
 
 
@@ -51,15 +50,46 @@ def get_dates_for_airport(sel_airport):
 @cache.cached()
 def index():
     today_beginning = datetime.combine(date.today(), time())
-
-    senders_today = db.session.query(db.func.count(Sender.id)).filter(Sender.lastseen >= today_beginning).one()[0]
-    receivers_today = db.session.query(db.func.count(Receiver.id)).filter(Receiver.lastseen >= today_beginning).one()[0]
-    takeoffs_today = db.session.query(db.func.count(TakeoffLanding.id)).filter(db.and_(TakeoffLanding.timestamp >= today_beginning, TakeoffLanding.is_takeoff == db.true())).one()[0]
-    landings_today = db.session.query(db.func.count(TakeoffLanding.id)).filter(db.and_(TakeoffLanding.timestamp >= today_beginning, TakeoffLanding.is_takeoff == db.false())).one()[0]
-    sender_positions_today = db.session.query(db.func.sum(ReceiverStatistic.messages_count)).filter(ReceiverStatistic.date == date.today()).one()[0]
-    sender_positions_total = db.session.query(db.func.sum(ReceiverStatistic.messages_count)).one()[0]
-
-    last_logbook_entries = db.session.query(Logbook).order_by(Logbook.reference_timestamp.desc()).limit(10)
+    senders_today = (
+        db.session.query(db.func.count(Sender.id))
+        .filter(Sender.lastseen >= today_beginning)
+        .one()[0]
+    )
+    receivers_today = (
+        db.session.query(db.func.count(Receiver.id))
+        .filter(Receiver.lastseen >= today_beginning)
+        .one()[0]
+    )
+    takeoffs_today = (
+        db.session.query(db.func.count(TakeoffLanding.id))
+        .filter(db.and_(
+            TakeoffLanding.timestamp >= today_beginning,
+            TakeoffLanding.is_takeoff == db.true()
+        ))
+        .one()[0]
+    )
+    landings_today = (
+        db.session.query(db.func.count(TakeoffLanding.id))
+        .filter(db.and_(
+            TakeoffLanding.timestamp >= today_beginning,
+            TakeoffLanding.is_takeoff == db.false()
+        ))
+        .one()[0]
+    )
+    sender_positions_today = (
+        db.session.query(db.func.sum(ReceiverStatistic.messages_count))
+        .filter(ReceiverStatistic.date == date.today())
+        .one()[0]
+    )
+    sender_positions_total = (
+        db.session.query(db.func.sum(ReceiverStatistic.messages_count))
+        .one()[0]
+    )
+    last_logbook_entries = (
+        db.session.query(Logbook)
+        .order_by(Logbook.reference_timestamp.desc())
+        .limit(10)
+    )
     return render_template(
         "index.html",
         senders_today=senders_today,
@@ -74,17 +104,22 @@ def index():
 @bp.route("/senders.html", methods=["GET", "POST"])
 @cache.cached()
 def senders():
-    senders = db.session.query(Sender) \
-        .options(db.joinedload(Sender.infos)) \
+    senders = (
+        db.session.query(Sender)
+        .options(db.joinedload(Sender.infos))
         .order_by(Sender.name)
+    )
     return render_template("senders.html", senders=senders)
 
 
 @bp.route("/sender_detail.html", methods=["GET", "POST"])
 def sender_detail():
     sender_id = request.args.get("sender_id")
-    sender = db.session.query(Sender).filter(Sender.id == sender_id).one()
-
+    sender = (
+        db.session.query(Sender)
+        .filter(Sender.id == sender_id)
+        .one()
+    )
     return render_template("sender_detail.html", title="Sender", sender=sender)
 
 
@@ -107,18 +142,23 @@ def range_view():
 @cache.cached(query_string=True)
 def receivers():
     sel_country = request.args.get("country")
-
     countries = get_countries_in_receivers()
 
     # Get receiver selection list
     if sel_country:
-        receivers = db.session.query(Receiver) \
-            .join(Country) \
-            .filter(db.and_(Receiver.country_id == Country.gid, Country.iso2 == sel_country)) \
-            .order_by(Receiver.name)
+        receivers = (
+            db.session.query(Receiver)
+            .join(Country)
+            .filter(db.and_(
+                Receiver.country_id == Country.gid,
+                Country.iso2 == sel_country
+            ))
+            .order_by(Receiver.name))
     else:
-        receivers = db.session.query(Receiver) \
+        receivers = (
+            db.session.query(Receiver)
             .order_by(Receiver.name)
+        )
 
     return render_template("receivers.html", title="Receivers", sel_country=sel_country, countries=countries, receivers=receivers)
 
@@ -126,15 +166,17 @@ def receivers():
 @bp.route("/receiver_detail.html")
 def receiver_detail():
     receiver_id = request.args.get("receiver_id")
-
-    receiver = db.session.query(Receiver).filter(Receiver.id == receiver_id).one()
+    receiver = (
+        db.session.query(Receiver)
+        .filter(Receiver.id == receiver_id)
+        .one()
+    )
     return render_template("receiver_detail.html", title="Receiver Detail", receiver=receiver)
 
 
 @bp.route("/airports.html", methods=["GET", "POST"])
 def airports():
     sel_country = request.args.get("country")
-
     countries = get_used_countries()
 
     if sel_country:
@@ -142,18 +184,22 @@ def airports():
     else:
         airports = []
 
-    page = request.args.get("page", 1, type=int)
-
     return render_template("airports.html", sel_country=sel_country, countries=countries, airports=airports)
 
 
 @bp.route("/airport_detail.html")
 def airport_detail():
     sel_airport = request.args.get("airport_id")
-
-    airport = db.session.query(Airport).filter(Airport.id == sel_airport)
-
-    senders = db.session.query(Sender).join(Logbook).filter(Logbook.takeoff_airport_id == sel_airport).order_by(Sender.name)
+    airport = (
+        db.session.query(Airport)
+        .filter(Airport.id == sel_airport)
+    )
+    senders = (
+        db.session.query(Sender)
+        .join(Logbook)
+        .filter(Logbook.takeoff_airport_id == sel_airport)
+        .order_by(Sender.name)
+    )
 
     return render_template("airport_detail.html", title="Airport Detail", airport=airport.one(), senders=senders)
 
@@ -163,9 +209,7 @@ def logbooks():
     sel_country = request.args.get("country")
     sel_airport_id = request.args.get("airport_id")
     sel_date = request.args.get("date")
-
     sel_sender_id = request.args.get("sender_id")
-
     countries = get_used_countries()
 
     if sel_country:
@@ -192,7 +236,10 @@ def logbooks():
     # Get Logbook
     filters = []
     if sel_airport_id:
-        filters.append(db.or_(Logbook.takeoff_airport_id == sel_airport_id, Logbook.landing_airport_id == sel_airport_id))
+        filters.append(db.or_(
+            Logbook.takeoff_airport_id == sel_airport_id,
+            Logbook.landing_airport_id == sel_airport_id
+        ))
 
     if sel_date:
         filters.append(db.func.date(Logbook.reference_timestamp) == sel_date)
@@ -201,7 +248,12 @@ def logbooks():
         filters.append(Logbook.sender_id == sel_sender_id)
 
     if len(filters) > 0:
-        logbooks = db.session.query(Logbook).filter(*filters).order_by(Logbook.reference_timestamp).limit(100)
+        logbooks = (
+            db.session.query(Logbook)
+            .filter(*filters)
+            .order_by(Logbook.reference_timestamp)
+            .limit(100)
+        )
     else:
         logbooks = None
 
@@ -211,10 +263,15 @@ def logbooks():
 @bp.route("/sender_ranking.html")
 @cache.cached()
 def sender_ranking():
-    sender_statistics = db.session.query(SenderStatistic) \
-        .filter(db.and_(SenderStatistic.date == date.today(), SenderStatistic.is_trustworthy == db.true())) \
-        .order_by(SenderStatistic.max_distance.desc()) \
+    sender_statistics = (
+        db.session.query(SenderStatistic)
+        .filter(db.and_(
+            SenderStatistic.date == date.today(),
+            SenderStatistic.is_trustworthy == db.true()
+        ))
+        .order_by(SenderStatistic.max_distance.desc())
         .all()
+    )
 
     return render_template(
         "sender_ranking.html",
@@ -228,76 +285,130 @@ def receiver_ranking():
     sel_country = request.args.get("country")
     DAYS_FOR_AVERAGING = 28
 
-    countries = db.session.query(Country) \
-        .filter(Country.gid == ReceiverRanking.country_id) \
-        .filter(ReceiverRanking.date == date.today()) \
+    countries = (
+        db.session.query(Country)
+        .filter(Country.gid == ReceiverRanking.country_id)
+        .filter(ReceiverRanking.date == date.today())
         .order_by(Country.iso2)
+    )
 
     # Make the rank for today
-    rank_today = db.session.query(
+    rank_today = (
+        db.session.query(
             ReceiverRanking.receiver_id,
             ReceiverRanking.country_id,
-            db.func.rank().over(partition_by=ReceiverRanking.country_id, order_by=ReceiverRanking.local_distance_pareto.desc()).label('local_rank'),
-            db.func.rank().over(order_by=ReceiverRanking.global_distance_pareto.desc()).label('global_rank')) \
-        .filter(ReceiverRanking.date == date.today()) \
+            db.func.rank().over(
+                partition_by=ReceiverRanking.country_id,
+                order_by=ReceiverRanking.local_distance_pareto.desc()
+            ).label('local_rank'),
+            db.func.rank().over(
+                order_by=ReceiverRanking.global_distance_pareto.desc()
+            ).label('global_rank'))
+        .filter(ReceiverRanking.date == date.today())
         .subquery()
+    )
 
     # Sum the pareto values for the last 28 days
-    longtime_today = db.session.query(
+    longtime_today = (
+        db.session.query(
             ReceiverRanking.receiver_id,
             ReceiverRanking.country_id,
             db.func.sum(ReceiverRanking.local_distance_pareto).label('local_distance_pareto'),
-            db.func.sum(ReceiverRanking.global_distance_pareto).label('global_distance_pareto')) \
-        .filter(ReceiverRanking.date.between(date.today() - timedelta(days=DAYS_FOR_AVERAGING), date.today())) \
-        .group_by(ReceiverRanking.receiver_id, ReceiverRanking.country_id) \
+            db.func.sum(ReceiverRanking.global_distance_pareto).label('global_distance_pareto')
+        )
+        .filter(ReceiverRanking.date.between(
+            date.today() - timedelta(days=DAYS_FOR_AVERAGING),
+            date.today())
+        )
+        .group_by(ReceiverRanking.receiver_id, ReceiverRanking.country_id)
         .subquery()
+    )
 
     # ... and make the longtime_ranking for today
-    longtime_rank_today = db.session.query(
+    longtime_rank_today = (
+        db.session.query(
             longtime_today.c.receiver_id,
             longtime_today.c.country_id,
-            db.func.rank().over(partition_by=longtime_today.c.country_id, order_by=longtime_today.c.local_distance_pareto.desc()).label('local_rank'),
-            db.func.rank().over(order_by=longtime_today.c.global_distance_pareto.desc()).label('global_rank')) \
+            db.func.rank().over(
+                partition_by=longtime_today.c.country_id,
+                order_by=longtime_today.c.local_distance_pareto.desc()
+            ).label('local_rank'),
+            db.func.rank().over(
+                order_by=longtime_today.c.global_distance_pareto.desc()
+            ).label('global_rank')
+        )
         .subquery()
+    )
 
     # Sum the pareto values for the last 28 days (beginning from yesterday!)
-    longtime_yesterday = db.session.query(
+    longtime_yesterday = (
+        db.session.query(
             ReceiverRanking.receiver_id,
             ReceiverRanking.country_id,
             db.func.sum(ReceiverRanking.local_distance_pareto).label('local_distance_pareto'),
-            db.func.sum(ReceiverRanking.global_distance_pareto).label('global_distance_pareto')) \
-        .filter(ReceiverRanking.date.between(date.today() - timedelta(days=DAYS_FOR_AVERAGING + 1), date.today() - timedelta(days=1))) \
-        .group_by(ReceiverRanking.receiver_id, ReceiverRanking.country_id) \
+            db.func.sum(ReceiverRanking.global_distance_pareto).label('global_distance_pareto'))
+        .filter(ReceiverRanking.date.between(
+            date.today() - timedelta(days=DAYS_FOR_AVERAGING + 1),
+            date.today() - timedelta(days=1))
+        )
+        .group_by(ReceiverRanking.receiver_id, ReceiverRanking.country_id)
         .subquery()
+    )
 
     # ... and make the longtime_ranking for yesterday
-    longtime_rank_yesterday = db.session.query(
+    longtime_rank_yesterday = (
+        db.session.query(
             longtime_yesterday.c.receiver_id,
             longtime_yesterday.c.country_id,
-            db.func.rank().over(partition_by=longtime_yesterday.c.country_id, order_by=longtime_yesterday.c.local_distance_pareto.desc()).label('local_rank'),
-            db.func.rank().over(order_by=longtime_yesterday.c.global_distance_pareto.desc()).label('global_rank')) \
+            db.func.rank().over(
+                partition_by=longtime_yesterday.c.country_id,
+                order_by=longtime_yesterday.c.local_distance_pareto.desc()
+            ).label('local_rank'),
+            db.func.rank().over(
+                order_by=longtime_yesterday.c.global_distance_pareto.desc()
+            ).label('global_rank'))
         .subquery()
+    )
 
     # we need the ReceiverRanking, but only from today
-    receiver_rankings_from_today = db.session.query(ReceiverRanking).filter(ReceiverRanking.date == date.today()).subquery()
+    receiver_rankings_from_today = (
+        db.session.query(ReceiverRanking)
+        .filter(ReceiverRanking.date == date.today())
+        .subquery()
+    )
     receiver_rankings_from_today = db.aliased(ReceiverRanking, receiver_rankings_from_today)
 
     # Get receiver selection list
     if sel_country:
-        ranking = db.session.query(Receiver, receiver_rankings_from_today, rank_today.c.local_rank.label('rank_today'), longtime_rank_today.c.local_rank.label('longtime_rank_today'), longtime_rank_yesterday.c.local_rank.label('longtime_rank_yesterday')) \
-            .join(receiver_rankings_from_today, isouter=True) \
-            .join(rank_today, rank_today.c.receiver_id == Receiver.id, isouter=True) \
-            .join(longtime_rank_yesterday, longtime_rank_yesterday.c.receiver_id == Receiver.id, isouter=True) \
-            .join(longtime_rank_today, longtime_rank_today.c.receiver_id == Receiver.id) \
-            .filter(db.and_(Receiver.country_id == Country.gid, Country.iso2 == sel_country)) \
+        ranking = (
+            db.session.query(
+                Receiver,
+                receiver_rankings_from_today,
+                rank_today.c.local_rank.label('rank_today'),
+                longtime_rank_today.c.local_rank.label('longtime_rank_today'),
+                longtime_rank_yesterday.c.local_rank.label('longtime_rank_yesterday')
+            )
+            .join(receiver_rankings_from_today, isouter=True)
+            .join(rank_today, rank_today.c.receiver_id == Receiver.id, isouter=True)
+            .join(longtime_rank_yesterday, longtime_rank_yesterday.c.receiver_id == Receiver.id, isouter=True)
+            .join(longtime_rank_today, longtime_rank_today.c.receiver_id == Receiver.id)
+            .filter(db.and_(Receiver.country_id == Country.gid, Country.iso2 == sel_country))
             .order_by(longtime_rank_today.c.local_rank)
+        )
     else:
-        ranking = db.session.query(Receiver, receiver_rankings_from_today, rank_today.c.global_rank.label('rank_today'), longtime_rank_today.c.global_rank.label('longtime_rank_today'), longtime_rank_yesterday.c.global_rank.label('longtime_rank_yesterday')) \
-            .join(receiver_rankings_from_today, isouter=True) \
-            .join(rank_today, rank_today.c.receiver_id == Receiver.id, isouter=True) \
-            .join(longtime_rank_yesterday, longtime_rank_yesterday.c.receiver_id == Receiver.id, isouter=True) \
-            .join(longtime_rank_today, longtime_rank_today.c.receiver_id == Receiver.id) \
-            .order_by(longtime_rank_today.c.global_rank)
+        ranking = (
+            db.session.query(
+                Receiver,
+                receiver_rankings_from_today,
+                rank_today.c.global_rank.label('rank_today'),
+                longtime_rank_today.c.global_rank.label('longtime_rank_today'),
+                longtime_rank_yesterday.c.global_rank.label('longtime_rank_yesterday')
+            )
+            .join(receiver_rankings_from_today, isouter=True)
+            .join(rank_today, rank_today.c.receiver_id == Receiver.id, isouter=True)
+            .join(longtime_rank_yesterday, longtime_rank_yesterday.c.receiver_id == Receiver.id, isouter=True)
+            .join(longtime_rank_today, longtime_rank_today.c.receiver_id == Receiver.id)
+            .order_by(longtime_rank_today.c.global_rank))
 
     return render_template(
         "receiver_ranking.html",
@@ -324,12 +435,18 @@ def upload_file():
 
     try:
         receiver = db.session.query(Receiver).filter(Receiver.name == match.group('receiver_name')).one()
-    except NoResultFound as e:
+    except NoResultFound:
         abort(400, f"No receiver found with name '{match.group('receiver_name')}'.")
 
     file.save(os.path.join(current_app.config['UPLOAD_PATH'], filename))
 
-    uploaded_file = FrequencyScanFile(name=filename, gain=match.group('gain'), upload_ip_address=request.headers['X-Real-IP'], upload_timestamp=datetime.utcnow(), receiver=receiver)
+    uploaded_file = FrequencyScanFile(
+        name=filename,
+        gain=match.group('gain'),
+        upload_ip_address=request.headers['X-Real-IP'],
+        upload_timestamp=datetime.utcnow(),
+        receiver=receiver
+    )
     db.session.add(uploaded_file)
     db.session.commit()
 
@@ -340,8 +457,12 @@ def upload_file():
 def frequency_scan():
     frequency_scan_file_id = request.args.get("frequency_scan_file_id")
     try:
-        frequency_scan_file = db.session.query(FrequencyScanFile).filter(FrequencyScanFile.id == frequency_scan_file_id).one()
-    except NoResultFound as e:
+        frequency_scan_file = (
+            db.session.query(FrequencyScanFile)
+            .filter(FrequencyScanFile.id == frequency_scan_file_id)
+            .one()
+        )
+    except NoResultFound:
         abort(400, f"No frequency_scan_file found id '{frequency_scan_file_id}'.")
 
     html = get_bokeh_frequency_scan(frequency_scan_file)
