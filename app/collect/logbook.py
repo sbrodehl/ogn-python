@@ -338,7 +338,7 @@ def update_max_altitudes():
 
     update_counter = 0
     for _ in range(MAX_UPDATES):
-        result = db.session.execute(query)
+        db.session.execute(query)
         db.session.commit()
 
     return update_counter
