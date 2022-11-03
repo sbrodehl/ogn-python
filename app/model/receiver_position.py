@@ -10,15 +10,15 @@ class ReceiverPosition(db.Model):
     # APRS data
     name = db.Column(db.String)
     dstcall = db.Column(db.String)
-    #relay = db.Column(db.String)
+    # relay = db.Column(db.String)
     receiver_name = db.Column(db.String(9))
     timestamp = db.Column(db.DateTime)
     location = db.Column("location", Geometry("POINT", srid=4326))
     symboltable = None
     symbolcode = None
 
-    #track = db.Column(db.SmallInteger)
-    #ground_speed = db.Column(db.Float(precision=2))
+    # track = db.Column(db.SmallInteger)
+    # ground_speed = db.Column(db.Float(precision=2))
     altitude = db.Column(db.Float(precision=2))
 
     comment = None
