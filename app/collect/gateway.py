@@ -1,4 +1,3 @@
-from datetime import datetime
 from flask import current_app
 
 from app import redis_client
@@ -18,7 +17,17 @@ def transfer_from_redis_to_database():
     receiver_position_csv_strings_to_db(lines=receiver_position_data)
     sender_position_csv_strings_to_db(lines=sender_position_data)
 
-    current_app.logger.debug(f"transfer_from_redis_to_database: rx_stat: {len(receiver_status_data):6d}\trx_pos: {len(receiver_position_data):6d}\ttx_stat: {len(sender_status_data):6d}\ttx_pos: {len(sender_position_data):6d}")
+    current_app.logger.debug(
+        f"transfer_from_redis_to_database: rx_stat: {len(receiver_status_data):6d}\t"
+        f"rx_pos: {len(receiver_position_data):6d}\t"
+        f"tx_stat: {len(sender_status_data):6d}\t"
+        f"tx_pos: {len(sender_position_data):6d}"
+    )
 
-    finish_message = f"Database: {len(receiver_status_data)+len(receiver_position_data)+len(sender_status_data)+len(sender_position_data)} inserted"
+    inserts = len(receiver_status_data)
+    inserts += len(receiver_position_data)
+    inserts += len(sender_status_data)
+    inserts += len(sender_position_data)
+
+    finish_message = f"Database: {inserts} inserted"
     return finish_message
