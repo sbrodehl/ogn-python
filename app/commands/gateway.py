@@ -96,7 +96,7 @@ def printout(aprs_filter):
     client.connect()
 
     try:
-        client.run(callback=lambda x: print(f"{datetime.utcnow()}: {x}"), autoreconnect=True)
+        client.run(callback=lambda x: print(f"{datetime.utcnow()}: {aprs_string_to_message(x)}"), autoreconnect=True)
     except KeyboardInterrupt:
         current_app.logger.warning("\nStop ogn gateway")
 
