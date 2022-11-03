@@ -49,7 +49,7 @@ class SenderPosition(db.Model):
     real_address = db.Column(db.String(6))
     signal_power = db.Column(db.Float(precision=2))
 
-    #proximity = None
+    # proximity = None
 
     # Calculated values (from parser)
     distance = db.Column(db.Float(precision=2))
