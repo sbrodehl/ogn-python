@@ -1,7 +1,5 @@
 import datetime
 
-from sqlalchemy.ext.hybrid import hybrid_property
-
 from app import db
 from app.model.aircraft_type import AircraftType
 
