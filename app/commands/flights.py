@@ -5,7 +5,6 @@ from datetime import datetime
 from tqdm import tqdm
 
 from app.commands.database import get_database_days
-from app import db
 from app.collect.flights import compute_flights, compute_gaps
 
 user_cli = AppGroup("flights")
@@ -25,6 +24,6 @@ def create(start, end, flight_type):
     for single_date in pbar:
         pbar.set_description(datetime.strftime(single_date, "%Y-%m-%d"))
         if flight_type <= 2:
-            result = compute_flights(date=single_date, flight_type=flight_type)
+            compute_flights(date=single_date, flight_type=flight_type)
         else:
-            result = compute_gaps(date=single_date)
+            compute_gaps(date=single_date)
