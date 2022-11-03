@@ -3,12 +3,11 @@ import csv
 import requests
 
 from sqlalchemy.dialects.postgresql import insert
-from flask import current_app
 
 from flydenity import parser as flydenity_parser
 
 from app import db
-from app.model import AircraftType, Country, Sender, SenderInfo, SenderInfoOrigin, Receiver
+from app.model import AircraftType, Country, Sender, SenderInfo, SenderInfoOrigin
 
 DDB_URL = "https://ddb.glidernet.org/download/?j=1&t=1"
 FLARMNET_URL = "https://www.flarmnet.org/static/files/wfn/data.fln"
@@ -22,7 +21,11 @@ def upsert(model, rows, update_cols):
     stmt = insert(table).values(rows)
 
     on_conflict_stmt = stmt.on_conflict_do_update(
-        index_elements=table.primary_key.columns, set_={k: db.case([(getattr(stmt.excluded, k) != db.null(), getattr(stmt.excluded, k))], else_=getattr(model, k)) for k in update_cols}
+        index_elements=table.primary_key.columns,
+        set_={k: db.case(
+            [(getattr(stmt.excluded, k) != db.null(), getattr(stmt.excluded, k))],
+            else_=getattr(model, k)
+        ) for k in update_cols}
     )
 
     # print(compile_query(on_conflict_stmt))
@@ -30,7 +33,8 @@ def upsert(model, rows, update_cols):
 
 
 def read_ddb(csv_file=None):
-    """Get SenderInfos. You can provide a local file path for user defined SenderInfos. Otherwise the SenderInfos will be fetched from official DDB."""
+    """Get SenderInfos. You can provide a local file path for user defined SenderInfos.
+     Otherwise, the SenderInfos will be fetched from official DDB."""
 
     if csv_file is None:
         import json
@@ -96,11 +100,13 @@ def read_flarmnet(fln_file=None):
 
 def merge_sender_infos(sender_info_dicts):
     for sender_info_dict in sender_info_dicts:
-        statement = insert(SenderInfo) \
-            .values(**sender_info_dict) \
+        statement = (
+            insert(SenderInfo)
+            .values(**sender_info_dict)
             .on_conflict_do_update(
                 index_elements=['address', 'address_origin'],
                 set_=sender_info_dict)
+        )
 
         db.session.execute(statement)
 
@@ -110,7 +116,10 @@ def merge_sender_infos(sender_info_dicts):
     countries = {country.iso2: country for country in db.session.query(Country)}
 
     parser = flydenity_parser.Parser()
-    for sender_info in db.session.query(SenderInfo).filter(SenderInfo.country_id == db.null(), SenderInfo.registration != db.null()):
+    for sender_info in (
+            db.session.query(SenderInfo)
+            .filter(SenderInfo.country_id == db.null(), SenderInfo.registration != db.null())
+    ):
         dataset = parser.parse(sender_info.registration, strict=True)
         if dataset is None:
             continue
@@ -120,11 +129,13 @@ def merge_sender_infos(sender_info_dicts):
     db.session.commit()
 
     # Update sender_infos FK -> senders
-    upd = db.update(SenderInfo) \
-        .where(SenderInfo.address == Sender.address) \
-        .values(sender_id=Sender.id) \
+    upd = (
+        db.update(SenderInfo)
+        .where(SenderInfo.address == Sender.address)
+        .values(sender_id=Sender.id)
         .execution_options(synchronize_session="fetch")
-    result = db.session.execute(upd)
+    )
+    db.session.execute(upd)
     db.session.commit()
 
     return len(sender_info_dicts)
