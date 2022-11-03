@@ -3,7 +3,6 @@ import gzip
 import time
 from contextlib import contextmanager
 
-from flask import current_app
 from app import db
 
 
