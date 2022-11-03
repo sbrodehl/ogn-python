@@ -6,7 +6,7 @@ from flask import current_app
 from aerofiles.seeyou import Reader
 from ogn.parser.utils import FEETS_TO_METER
 
-from .model import AircraftType, SenderInfoOrigin, SenderInfo, Airport, Location
+from .model import Airport, Location
 
 
 address_prefixes = {"F": "FLR", "O": "OGN", "I": "ICA"}
