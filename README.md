@@ -98,24 +98,32 @@ The code of ogn-python will be available in the shared folder `/vagrant`.
 
 ## Usage
 ### Running the aprs client and task server
+
+Print the raw APRS messages to the cli (no database or background task is required)
+
+```
+flask gateway printout
+```
+
 To schedule tasks like takeoff/landing-detection (`logbook.compute`),
 [Celery](http://www.celeryproject.org/) with [Redis](http://www.redis.io/) is used.
 The following scripts run in the foreground and should be deamonized
 (eg. use [supervisord](http://supervisord.org/)).
+The following commands need Redis to be up and running!
 
-- Start the aprs client
+- Start the aprs client, which parses the incoming data and dump it into redis
 
   ```
   flask gateway run
   ```
 
-- Start a task server (make sure redis is up and running)
+- Start a task server
 
   ```
   celery -A celery_app worker -l info
   ```
 
-- Start the task scheduler (make sure a task server is up and running)
+- Start the task scheduler
 
   ```
   celery -A celery_app beat -l info
