@@ -1,7 +1,5 @@
 from app import db
 
-from sqlalchemy.dialects.postgresql import JSON
-
 
 class DirectionStatistic(db.Model):
     __tablename__ = "direction_statistics"
