@@ -18,7 +18,7 @@ class BaseConfig:
     APRS_USER = "OGNPYTHON"
 
     # Upload configuration
-    MAX_CONTENT_LENGTH = 1024 * 1024    # max. 1MB
+    MAX_CONTENT_LENGTH = 1024 * 1024  # max. 1MB
     UPLOAD_EXTENSIONS = ['.csv']
     UPLOAD_PATH = 'uploads'
 
@@ -39,9 +39,8 @@ class DefaultConfig(BaseConfig):
         "update_logbook_previous_day": {"task": "update_logbook", "schedule": crontab(hour=1, minute=0), "kwargs": {"day_offset": -1}},
 
         "update_ddb_daily": {"task": "import_ddb", "schedule": timedelta(days=1)},
-        #"update_logbook_max_altitude": {"task": "update_logbook_max_altitude", "schedule": timedelta(minutes=1), "kwargs": {"offset_days": 0}},
-
-        #"purge_old_data": {"task": "purge_old_data", "schedule": timedelta(hours=1), "kwargs": {"max_hours": 48}},
+        # "update_logbook_max_altitude": {"task": "update_logbook_max_altitude", "schedule": timedelta(minutes=1), "kwargs": {"offset_days": 0}},
+        # "purge_old_data": {"task": "purge_old_data", "schedule": timedelta(hours=1), "kwargs": {"max_hours": 48}},
     }
 
     FLASK_PROFILER = {
